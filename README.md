@@ -1,6 +1,6 @@
 # 🤖 RotMG Event Auto-Joiner (GoTo Quest)
 
-This is a bot for **Realm of the Mad God Exalt**. It automatically finds events (like "Oryx", "Shatters", "Kaiju") using RealmStock and **joins the server for you** so you don't have to type IPs manually.
+This is a bot for **Realm of the Mad God Exalt**. It automatically finds events (like "Oryx", "Shatters", "Kaiju") using RealmStocks event notifier and **joins the server for you** so you don't have to play the game. Attempts to fixe X clients removal of the GotoQuest state (very gay wheres the 30bot halls).
 
 **It works in the background.** You can watch YouTube or play other games while it runs.
 
