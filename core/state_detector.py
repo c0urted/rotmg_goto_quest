@@ -1,41 +1,43 @@
 import cv2
 import numpy as np
+import pyautogui
 import os
+import win32api
 
 class StateDetector:
-    def __init__(self, api_manager):
-        self.api = api_manager
-        # Load the reference image of the Nexus floor
-        if os.path.exists("nexus_pattern.png"):
-            self.template = cv2.imread("nexus_pattern.png", cv2.IMREAD_UNCHANGED)
-            # Remove alpha channel if present (OpenCV matchTemplate prefers 3 channels)
-            if self.template.shape[2] == 4:
-                self.template = self.template[:, :, :3]
+    def __init__(self):
+        # Calculate screen center once to save math later
+        self.screen_w = win32api.GetSystemMetrics(0)
+        self.screen_h = win32api.GetSystemMetrics(1)
+        
+        # Define a 600x600 box in the middle of the screen
+        self.roi_left = (self.screen_w // 2) - 300
+        self.roi_top = (self.screen_h // 2) - 300
+        self.roi_width = 600
+        self.roi_height = 600
+        
+        # Pre-load the template in Grayscale
+        if os.path.exists("nexus_portal.png"):
+            self.template = cv2.imread("nexus_portal.png", 0) # 0 = Grayscale mode
         else:
-            print("[Error] nexus_pattern.png not found! Nexus detection will fail.")
             self.template = None
 
     def is_in_nexus(self):
-        """
-        Scans the screen for the Nexus floor texture.
-        Returns True if the texture is found with high confidence.
-        """
-        if self.template is None: return False
+        if self.template is None:
+            return True # Blind mode
 
-        # 1. Capture Screen
-        screen = self.api.capture_background()
-        if screen is None: return False
-
-        # 2. Convert to standard BGR (remove alpha from screenshot)
-        screen_bgr = screen[:, :, :3]
-
-        # 3. Template Matching (The heavy lifting)
-        # This slides the 'nexus_pattern' over the 'screen' looking for a match
-        result = cv2.matchTemplate(screen_bgr, self.template, cv2.TM_CCOEFF_NORMED)
-        
-        # 4. Check confidence
-        # min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(result)
-        _, max_val, _, _ = cv2.minMaxLoc(result)
-
-        # Threshold: 0.8 means "80% match". Adjust this if it fails.
-        return max_val > 0.8
+        try:
+            # 1. Screenshot ONLY the Region of Interest (Center of screen)
+            screenshot = pyautogui.screenshot(region=(self.roi_left, self.roi_top, self.roi_width, self.roi_height))
+            
+            # 2. Convert to Grayscale (Faster)
+            gray_screen = cv2.cvtColor(np.array(screenshot), cv2.COLOR_RGB2GRAY)
+            
+            # 3. Match
+            result = cv2.matchTemplate(gray_screen, self.template, cv2.TM_CCOEFF_NORMED)
+            _, max_val, _, _ = cv2.minMaxLoc(result)
+            
+            return max_val >= 0.8
+            
+        except Exception:
+            return True

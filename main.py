@@ -1,52 +1,55 @@
 import time
 import os
 import config
+from collections import deque
 from core.win_api_manager import WinApiManager
+from core.state_detector import StateDetector
 from core.scraper import RealmScraper
 
 def main():
-    target_mob = input("What are we farming today? (e.g., 'Oryx', 'Shatters'): ").strip()
-    print(f"Target locked: {target_mob}")
-
-    # Initialization
+    target_mob = input("Farm Target: ").strip()
+    
     win_man = WinApiManager(config.WINDOW_TITLE)
+    detector = StateDetector()
     scraper = RealmScraper()
     
-    # Validation
-    if not win_man.find_window():
-        print("[Error] RotMGExalt window not found. Please open the game first.")
-        return
+    # HISTORY: Store UUIDs so we never re-join the same event ID
+    history = deque(maxlen=20)
 
-    # Main Loop
+    print(f"\n[System] tracking [{target_mob}]...")
+
     while True:
-        print(f"\n[System] Scanning RealmStock API for {target_mob}...")
+        # 1. Scrape Events (Returns list of RealmEvent objects)
+        events = scraper.find_events(target_mob)
         
-        # 1. Get IP (API Method)
-        ip_list = scraper.find_ips_for_keyword(target_mob)
+        # 2. Filter Process
+        for event in events:
+            # SKIP if we already did this UUID
+            if event.uuid in history:
+                continue
+            
+            # SKIP if we are currently in a dungeon (Safety check)
+            if not detector.is_in_nexus():
+                print("[System] Waiting to return to Nexus...")
+                time.sleep(2)
+                continue
+
+            # NEW EVENT FOUND
+            print(f"\n[>>>] NEW EVENT: {event}") # Uses the nice string format we made
+            
+            # Join
+            if win_man.send_chat_command(f"/ip {event.ip}"):
+                history.append(event.uuid)
+                
+                # Wait loop
+                print("[State] Waiting for departure...")
+                # (Insert your wait logic here)
+                time.sleep(5) 
+                
+                # We break to refresh the list, ensuring we don't process stale events
+                break 
         
-        if not ip_list:
-            print("[System] No runs found. Retrying in 30 seconds...")
-            time.sleep(30)
-            continue
-
-        # 2. Process Found IPs
-        for ip in ip_list:
-            print(f"[Action] Sending connect command to {ip}...")
-            
-            # This will work even if you are watching YouTube or playing another game
-            success = win_man.send_chat_command(f"/ip {ip}")
-            
-            if success:
-                print("[Action] Command sent. Waiting 5 minutes for run...")
-                try:
-                    time.sleep(300) 
-                except KeyboardInterrupt:
-                    print("[System] Wait cancelled.")
-            else:
-                print("[Error] Failed to send command (Window closed?).")
-
-        print("[System] Cycle finished. Cooling down (2 minutes)...")
-        time.sleep(120)
+        time.sleep(2) # Fast polling since we optimized the image detection
 
 if __name__ == "__main__":
     main()
