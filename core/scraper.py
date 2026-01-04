@@ -4,107 +4,115 @@ from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from urllib3.exceptions import MaxRetryError, NewConnectionError
 import config
-from core.models import RealmEvent  # Import the model we just made
+from core.models import RealmEvent
+import atexit
+import psutil # Needed for cleanup
+import time
 
 class RealmScraper:
     def __init__(self):
-        options = webdriver.ChromeOptions()
-        options.add_argument("--log-level=3")
-        options.add_argument("--window-size=1200,900") 
+        self.driver = None
+        self.wait = None
         
-        print("[System] Initializing Chrome Driver...")
-        self.driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
-        self.wait = WebDriverWait(self.driver, 10)
+        # 1. NUKE OLD PROCESSES ON START
+        # This ensures we don't have 10 windows open if you restarted the bot 10 times.
+        self.kill_zombies()
+        
+        # 2. Register cleanup for when we exit normally
+        atexit.register(self.close_browser)
+        
+        self.launch_browser()
+
+    def kill_zombies(self):
+        """Finds and kills old ChromeDriver processes to prevent window pile-up."""
+        print("[System] Checking for old browser sessions...")
+        killed = False
+        for proc in psutil.process_iter(['pid', 'name']):
+            try:
+                # We kill the DRIVER, which usually closes the browser window automatically
+                if 'chromedriver' in proc.info['name'].lower():
+                    proc.kill()
+                    killed = True
+            except (psutil.NoSuchProcess, psutil.AccessDenied):
+                pass
+        
+        if killed:
+            print("[System] Old sessions closed. Starting fresh.")
+            time.sleep(1) # Give Windows a second to release the files
+
+    def close_browser(self):
+        if self.driver:
+            try:
+                self.driver.quit()
+                self.driver = None
+            except:
+                pass
+
+    def launch_browser(self):
+        self.close_browser()
+        try:
+            options = webdriver.ChromeOptions()
+            options.add_argument("--log-level=3")
+            options.add_argument("--window-size=1200,900")
+            options.add_argument("--force-device-scale-factor=1")
+            
+            print("[System] Initializing Chrome Driver...")
+            self.driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+            self.wait = WebDriverWait(self.driver, 10)
+        except Exception as e:
+            print(f"[Critical] Failed to launch browser: {e}")
+
+    def ensure_active(self):
+        if self.driver is None:
+            self.launch_browser()
+            return False
+        try:
+            _ = self.driver.current_url
+            return True
+        except Exception:
+            print("[Warning] Browser connection lost! Restarting Chrome...")
+            self.launch_browser()
+            return False
 
     def get_ip_from_api(self, uuid):
-        """
-        Directly hits the RealmStock API using the user's email and event UUID.
-        """
         email = config.RS_EMAIL
         api_url = f"https://realmstock.network/Notifier/EventIp?email={email}&id={uuid}"
-        
-        # Async script to fetch the data
         fetch_script = f"""
         var callback = arguments[arguments.length - 1];
-        fetch('{api_url}')
-            .then(response => response.json())
-            .then(data => callback(data))
-            .catch(err => callback({{error: err.toString()}}));
+        fetch('{api_url}').then(r => r.json()).then(d => callback(d)).catch(e => callback(null));
         """
-        
         try:
             result = self.driver.execute_async_script(fetch_script)
-            if result and result.get("success") is True:
-                return result.get("value")
-            else:
-                return None
-        except Exception as e:
-            print(f"[API Error] Fetch failed: {e}")
-            return None
+            if result and result.get("success"): return result.get("value")
+        except: return None
 
     def find_events(self, target_mob):
-        """
-        Scrapes the HTML for event panels, then calls the API for IPs.
-        Returns a list of RealmEvent objects.
-        """
+        if not self.ensure_active(): return []
+        
         found_events = []
         target_url = "https://realmstock.com/pages/event-notifier"
         
-        # Ensure we are on the page
-        if self.driver.current_url != target_url:
-            self.driver.get(target_url)
-            # Short sleep to let the table render (React/JS needs a moment)
-            try:
-                WebDriverWait(self.driver, 5).until(
-                    EC.presence_of_element_located((By.CLASS_NAME, "realmstock-panel"))
-                )
-            except:
-                pass # Proceed anyway, maybe no events exist
-
         try:
-            # 1. Find the Panel for the Mob
-            # We look for the <h2> that contains the mob name, then go up to the main panel div
+            if target_url not in self.driver.current_url:
+                self.driver.get(target_url)
+                try: WebDriverWait(self.driver, 5).until(EC.presence_of_element_located((By.CLASS_NAME, "realmstock-panel")))
+                except: pass 
+
             xpath = f"//h2[contains(translate(text(), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), '{target_mob.lower()}')]/ancestor::div[contains(@class, 'realmstock-panel')]"
-            
             panels = self.driver.find_elements(By.XPATH, xpath)
 
             for panel in panels:
                 try:
-                    # 2. Extract UUID (It is the ID of the 'event-ip' td)
-                    ip_td = panel.find_element(By.CSS_SELECTOR, "td.event-ip")
-                    uuid = ip_td.get_attribute("id")
+                    uuid = panel.find_element(By.CSS_SELECTOR, "td.event-ip").get_attribute("id")
+                    lines = panel.find_element(By.CLASS_NAME, "event-server").text.split("\n")
+                    event = RealmEvent(uuid=uuid, name=target_mob, server=lines[0] if lines else "?", realm=lines[1] if len(lines)>1 else "?")
                     
-                    # 3. Extract Server/Realm Info (Text parsing)
-                    # Structure usually: "USSouthWest\nFrontier\n7/85"
-                    server_div = panel.find_element(By.CLASS_NAME, "event-server")
-                    lines = server_div.text.split("\n")
-                    
-                    s_name = lines[0] if len(lines) > 0 else "Unknown"
-                    r_name = lines[1] if len(lines) > 1 else "Unknown"
-
-                    # 4. Create Event Object
-                    event = RealmEvent(
-                        uuid=uuid,
-                        name=target_mob,
-                        server=s_name,
-                        realm=r_name
-                    )
-
-                    # 5. Fetch IP from API
-                    # Note: In the future, we can skip this call if we already have the UUID in history
-                    # But for now, we just grab it to be safe.
                     ip = self.get_ip_from_api(uuid)
-                    
                     if ip:
                         event.ip = ip
                         found_events.append(event)
-
-                except Exception:
-                    continue # Skip broken panels
-
-        except Exception as e:
-            # print(f"[Scraper Debug] Scan error: {e}") 
-            pass
-
+                except: continue
+        except: self.ensure_active()
         return found_events

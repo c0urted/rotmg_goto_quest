@@ -1,55 +1,75 @@
 import time
-import os
+import keyboard  # pip install keyboard
 import config
 from collections import deque
 from core.win_api_manager import WinApiManager
 from core.state_detector import StateDetector
 from core.scraper import RealmScraper
 
+def smart_sleep(seconds):
+    """
+    Sleeps for 'seconds', but can be interrupted by pressing Ctrl+M.
+    Returns True if skipped, False if finished normally.
+    """
+    print(f"[Wait] Sleeping for {seconds}s... Press 'Ctrl+M' to skip.")
+    start_time = time.time()
+    
+    while time.time() - start_time < seconds:
+        # Check if hotkey is pressed
+        if keyboard.is_pressed('ctrl+m'):
+            print("\n[System] Timer manually skipped!")
+            # Wait a tiny bit so we don't trigger it twice instantly
+            time.sleep(0.5) 
+            return True
+        time.sleep(0.1)
+    
+    return False
+
 def main():
     target_mob = input("Farm Target: ").strip()
     
     win_man = WinApiManager(config.WINDOW_TITLE)
-    detector = StateDetector()
     scraper = RealmScraper()
+    detector = StateDetector(win_man)
     
-    # HISTORY: Store UUIDs so we never re-join the same event ID
     history = deque(maxlen=20)
 
-    print(f"\n[System] tracking [{target_mob}]...")
+    print(f"\n[System] Tracking [{target_mob}]...")
+    print(f"[System] Mode: Hybrid (Nexus Check + {config.RUN_TIMEOUT/60:.1f}min Timer)")
+
+    if not win_man.find_window():
+        print("[Error] Game window not found! Open RotMG first.")
+        return
 
     while True:
-        # 1. Scrape Events (Returns list of RealmEvent objects)
         events = scraper.find_events(target_mob)
         
-        # 2. Filter Process
         for event in events:
-            # SKIP if we already did this UUID
             if event.uuid in history:
                 continue
-            
-            # SKIP if we are currently in a dungeon (Safety check)
-            if not detector.is_in_nexus():
-                print("[System] Waiting to return to Nexus...")
-                time.sleep(2)
-                continue
 
-            # NEW EVENT FOUND
-            print(f"\n[>>>] NEW EVENT: {event}") # Uses the nice string format we made
+            # Safety Check
+            is_safe = detector.is_in_safe_zone()
+            if not is_safe:
+                print(f"[System] New event ({event.server}), but you are in Dungeon.")
+                time.sleep(5)
+                continue 
+
+            print(f"\n[>>>] NEW EVENT: {event}")
             
-            # Join
             if win_man.send_chat_command(f"/ip {event.ip}"):
                 history.append(event.uuid)
                 
-                # Wait loop
-                print("[State] Waiting for departure...")
-                # (Insert your wait logic here)
-                time.sleep(5) 
-                
-                # We break to refresh the list, ensuring we don't process stale events
+                # SMART WAIT (Replaces simple sleep)
+                smart_sleep(config.RUN_TIMEOUT)
+
+                print("[System] Timer finished. Refreshing event list...")
                 break 
-        
-        time.sleep(2) # Fast polling since we optimized the image detection
+            else:
+                print("[Error] Failed to send command.")
+
+        # Small sleep between API checks (can also use smart_sleep if you want to exit fast)
+        time.sleep(config.CHECK_INTERVAL)
 
 if __name__ == "__main__":
     main()

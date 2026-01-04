@@ -22,6 +22,6 @@ REALMSTOCK_LOGIN_URL = "https://realmstock.com/account/login"
 # Timings
 CHECK_INTERVAL = 2.0  # How often to check for runs
 
-# Legacy Pixel Check (Optional/Legacy)
-NEXUS_ICON_POS = (1800, 200) 
-NEXUS_ICON_COLOR = (255, 215, 0)
+# HOW LONG TO WAIT AFTER JOINING A RUN
+# Time in seconds (1200 seconds = 20 minutes)
+RUN_TIMEOUT = 1200
