@@ -14,7 +14,7 @@ Designed to run in the background with minimal interference.
     * **Smart Wait:** Custom sleep logic allows you to skip timers instantly with `Ctrl+M`.
 * **Hybrid Safety:** Checks if your character is safely in the Nexus before attempting to join a new run (preventing disconnects/deaths in dungeons). **NOT ADDED YET**
 
-![Proof of it working in Visual studio code](images/proof.png)
+![Proof of it working in Visual studio code](images/image.png)
 
 ## Setup
 
