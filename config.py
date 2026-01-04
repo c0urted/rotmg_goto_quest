@@ -25,3 +25,9 @@ CHECK_INTERVAL = 2.0  # How often to check for runs
 # HOW LONG TO WAIT AFTER JOINING A RUN
 # Time in seconds (1200 seconds = 20 minutes)
 RUN_TIMEOUT = 1200
+# time key
+# 200s for tp cooldown and running to quest
+# +
+# Fungal Cavern: 15 minutes | 900s
+# Crystalline Cavern: 12 minutes | 720s
+# Nest: 8-12 minutes

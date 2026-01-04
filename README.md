@@ -1,118 +1,70 @@
-# 🤖 RotMG Event Auto-Joiner (GoTo Quest)
+# RotMG Event Hopper
 
-This is a bot for **Realm of the Mad God Exalt**. It automatically finds events (like "Oryx", "Shatters", "Kaiju") using RealmStocks event notifier and **joins the server for you** so you don't have to play the game. Attempts to fixe X clients removal of the GotoQuest state (very gay wheres the 30bot halls).
+A lightweight automation tool for **Realm of the Mad God Exalt**. Scrapes event data from RealmStock and automatically connects your client to servers hosting specific events (Oryx, Shatters, Nest, etc.).
 
-**It works in the background.** You can watch YouTube or play other games while it runs.
+Designed to run in the background with minimal interference.
 
----
+## Features
 
-## ⚠️ READ THIS FIRST
+* **API Hooking:** Bypasses the frontend UI refresh to grab IPs instantly via UUID.
+* **Background Injection:** Uses `pywin32` and clipboard injection to enter `/ip` commands without stealing mouse focus for long periods.
+* **Session Management:**
+    * **Single Window:** Reuses a single Chrome instance to prevent RAM bloat.
+    * **Auto-Cleanup:** Kills zombie Chrome processes and drivers on exit.
+    * **Smart Wait:** Custom sleep logic allows you to skip timers instantly with `Ctrl+M`.
+* **Hybrid Safety:** Checks if your character is safely in the Nexus before attempting to join a new run (preventing disconnects/deaths in dungeons). **NOT ADDED YET**
 
-1.  **Run as Administrator:** This bot **WILL NOT WORK** if you do not run it as Administrator. Windows prevents programs from typing into games unless they have Admin permissions.
-2.  **RealmStock Account:** You need a valid email and Order ID (OTP) from [RealmStock](https://realmstock.com) to use this.
-3.  **Use at your own risk:** Automating games can be against Terms of Service.
+## Setup
 
----
+### Prerequisites
+* Python 3.10+
+* Google Chrome
+* A [RealmStock](https://realmstock.com) account with a valid Order ID (OTP).
 
-## STEP 1: Install Python (The Engine)
+### Installation
 
-You need Python to run this script.
+1.  **Clone the repo:**
+    ```bash
+    git clone [https://github.com/c0urted/rotmg_goto_quest.git](https://github.com/c0urted/rotmg_goto_quest.git)
+    cd rotmg_goto_quest
+    ```
 
-1.  Go to [python.org/downloads](https://www.python.org/downloads/).
-2.  Click the big yellow **"Download Python"** button.
-3.  **CRITICAL STEP:** When the installer opens, check the box at the bottom that says **"Add Python to PATH"**.
-    * **
-    * If you miss this, the bot won't work.
-4.  Click **Install Now** and wait for it to finish.
-
----
-
-## STEP 2: Download & Setup the Bot
-
-1.  **Download:** Click the green **Code** button at the top of this page -> **Download ZIP**.
-2.  **Extract:** Open the ZIP file and drag the folder out to your Desktop.
-3.  **Open the Folder:** Go inside the folder. You should see files like `main.py` and `config.py`.
-
----
-
-## STEP 3: Install the "Helpers" (Libraries)
-
-The bot needs some extra tools to control Chrome and type keys.
-
-1.  Inside the bot folder, right-click on empty space and select **"Open in Terminal"** (or "Open PowerShell window here").
-    * *If you don't see that option: Type `cmd` in the address bar at the top of the folder window and hit Enter.*
-2.  A black window will pop up. Paste this command and hit Enter:
+2.  **Install dependencies:**
     ```bash
     pip install -r requirements.txt
     ```
-3.  Wait for all the text to stop scrolling. If you see "Successfully installed", you are good.
 
----
-
-## STEP 4: Enter Your Settings
-
-We need to tell the bot your email and password safely.
-
-1.  Look for a file named `.env` in the folder.
-    * *Don't see it? Create a new text file, name it `.env` (yes, just `.env`, no `.txt` at the end).*
-2.  Open `.env` with Notepad.
-3.  Paste this inside and fill in your info:
-
+3.  **Configure Environment:**
+    Create a file named `.env` in the root directory and add your credentials:
     ```ini
-    # Your RealmStock purchase email
-    RS_EMAIL=myemail@gmail.com
-    
-    # Your Order ID (Check your email from RealmStock)
+    RS_EMAIL=your_email@gmail.com
     RS_STATIC_OTP=123456
-    
-    # Leave this alone unless you renamed your game window
     WINDOW_TITLE=RotMGExalt
     ```
-4.  **Save the file** (File -> Save).
 
----
+4.  **Optional: Safety Images**
+    For the safety check to work, take a screenshot of a static object in the Nexus (like the Vault portal or a fountain) and save it as `nexus_portal.png` in the root folder.
+    * *If skipped, the bot runs in "Blind Mode" (timer only).*
 
-## STEP 5: (Optional) Smart Detection *NOT ADDED YET*
+## Usage
 
-The bot can "see" when you finish a dungeon so it knows when to start searching again.
-
-1.  Go to the Nexus in-game.
-2.  Take a screenshot (Windows Key + Shift + S) of something static, like the **Vault Portal** or the **Fountains**.
-    * *Do NOT capture players or pets moving around.*
-3.  Save the image as `nexus_pattern.png` inside the bot folder.
-4.  *If you skip this, the bot will just wait 5 minutes per run automatically.*
-
----
-
-## 🚀 STEP 6: HOW TO RUN IT
-
-1.  **Open RotMG Exalt** and sit in the Nexus.
-2.  Go to your bot folder.
-3.  **Right-Click** inside the folder (on empty white space).
-4.  Select **"Open in Terminal"** (or PowerShell/CMD).
-    * *Note: If you are launching from VS Code, right-click VS Code and select "Run as Administrator".*
-5.  Type this command and hit Enter:
+1.  Open RotMG Exalt and stay in the Nexus.
+2.  Run the script **as Administrator** (required to send input to the game):
     ```bash
     python main.py
     ```
-6.  The bot will ask: `What are we farming today?`
-    * Type: `Oryx` (or `Shatters`, `Nest`, etc).
-7.  **Hit Enter.**
+3.  Enter the event name when prompted (e.g., `Adult Baneserpent`, `Ancient Kaiju`, `The Nest`, `Elder Ent Ancient` etc).
 
-**That's it!** A minimized Chrome window will open. The bot will scan for the event, and as soon as one pops up, it will type the `/ip` command into your game automatically.
+### Controls
+* **`Ctrl + M`**: Skip the current wait timer and search for the next run immediately.
+* **`Ctrl + C`**: Stop the bot and close all browser sessions.
 
----
+## Configuration (`config.py`)
 
-## ❓ Troubleshooting (Help, it broke!)
+Adjust `RUN_TIMEOUT` in `config.py` to match the dungeon you are farming.
 
-**Error: "Access is denied"**
-* **Fix:** You didn't run the terminal as Administrator. Close it, search for "Command Prompt" in your Start Menu, right-click -> **Run as Administrator**, navigate to the folder, and try again.
-
-**Error: "Module not found: selenium" (or others)**
-* **Fix:** You skipped Step 3. Run `pip install -r requirements.txt` again.
-
-**The bot says "Command sent" but nothing happened in game**
-* **Fix:** Your game window might be minimized to the taskbar. Open the game window so it's on screen, then you can put other windows (like Chrome/Discord) over it. It just can't be minimized.
-
-**The bot crashes immediately**
-* **Fix:** Check your `.env` file. Did you save it? Did you put your correct email?
+```python
+# Example Timers (Seconds)
+# Nest (Public): 920
+# Fungal + Crystal: 1820
+RUN_TIMEOUT = 920
