@@ -1,6 +1,6 @@
 # RotMG Event Hopper
 
-A lightweight automation tool for **Realm of the Mad God Exalt**. Scrapes event data from RealmStock and automatically connects your client to servers hosting specific events (Oryx, Shatters, Nest, etc.).
+A lightweight automation tool for **Realm of the Mad God Exalt** and Xclient (rip Connect to Quest). Scrapes event data from RealmStock and automatically connects your client to servers hosting specific events (Oryx, Shatters, Nest, etc.).
 
 Designed to run in the background with minimal interference.
 
