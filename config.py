@@ -36,7 +36,10 @@ CHECK_INTERVAL = 2.0
 # 4. Targets
 # List the exact names of events you want to farm.
 TARGETS = [
-    "Cube God"
+    "Grand Sphinx",
+    "Crab Sovereign",
+    "Sigma Werewolf"
+
    # "Grand Sphinx",
    # "Hermit God"
 ]

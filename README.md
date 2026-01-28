@@ -33,6 +33,7 @@ Proof of it working in Visual studio code ^^
     git clone [https://github.com/c0urted/rotmg_goto_quest.git](https://github.com/c0urted/rotmg_goto_quest.git)
     cd rotmg_goto_quest
     ```
+    or download as a .zip and extract.
 
 2.  **Install Dependencies:**
     ```bash
@@ -54,10 +55,12 @@ Proof of it working in Visual studio code ^^
 The bot requires calibration to distinguish between the Nexus and a dungeon.
 
 1.  Stand in the **Nexus**.
-2.  Run `python calibration.py`.
-3.  Hover over static UI elements (Gold icon, Fame icon, or Shop button) and press **`Ctrl + B`**.
+2.  Run `calibration.py`.
+3.  Hover over static UI elements top right (Gold icon, Fame icon, and Shop button) and press **`Ctrl + B`**.
 4.  Capture **3-5 points** and press **`Ctrl + S`** to save.
 
+**Now you have your nexus detection setup and just need to run main.py**
+----
 
 
 ### How it Works
@@ -70,13 +73,12 @@ The bot checks your saved coordinates. If a majority of the pixels match (e.g., 
 To send the `/ip` command to the game, the bot must have permission to interact with the RotMG window.
 
 1.  **Open VS Code as Administrator**: 
-    - Close VS Code. 
     - Right-click the **VS Code shortcut**.
     - Select **"Run as Administrator"**.
-2.  **Open the Terminal**: Press ``Ctrl + ` `` (backtick) inside VS Code.
+2.  **Navigate to the folder**
 3.  **Run the Script**:
-    ```bash
-    python main.py
+    ```
+    main.py
     ```
 *Note: If you do not run as Admin, the bot will scan successfully but the game will ignore the typed commands.*
 
@@ -92,15 +94,18 @@ To send the `/ip` command to the game, the bot must have permission to interact 
 
 ---
 
+
 ## Project Structure
 
 * `main.py`: Primary loop and polished terminal interface.
+* `calibration.py`: Pixel selector for Nexus detection.
 * `core/scraper.py`: Selenium-based event scraper (V1 Logic).
 * `core/state_detector.py`: Pixel-matching safety engine.
 * `core/win_api_manager.py`: Handles background command injection.
 * `pixel_config.json`: Stores your calibrated UI data.
 
 ---
+
 
 ## ⚠️ Disclaimer
 This tool is for educational purposes. Automated event hopping is against ToS and we don't break the ToS! Use at your own risk.
