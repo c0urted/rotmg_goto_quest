@@ -16,7 +16,9 @@ Designed for 24/7 background operation with integrated safety checks to prevent 
 * **DPI Aware:** Handles Windows display scaling automatically for pixel-perfect accuracy.
 
 ---
+![Proof of it working in Visual studio code](images/image.png)
 
+Proof of it working in Visual studio code ^^
 ## Setup
 
 ### Prerequisites
