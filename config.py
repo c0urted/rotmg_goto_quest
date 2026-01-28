@@ -18,16 +18,38 @@ if not RS_EMAIL:
 # Realmstock URLs
 REALMSTOCK_URL = "https://realmstock.com/pages/event-notifier"
 REALMSTOCK_LOGIN_URL = "https://realmstock.com/account/login"
+# --- BOT CONFIGURATION ---
 
-# Timings
-CHECK_INTERVAL = 2.0  # How often to check for runs
+# 2. Safety Settings
+# Set to True to prevent joining runs while you are already in a dungeon.
+# Set to False to disable pixel checking (Blind Mode).
+ENABLE_NEXUS_CHECK = True
 
+# 3. Timers
+# How long (in seconds) to wait inside a dungeon before leaving.
+# The bot will skip this automatically if it sees you Nexus early.
+RUN_TIMEOUT = 1200  # Default: 20 mins
+
+# How often (seconds) to check RealmStock for new events.
+CHECK_INTERVAL = 2.0
+
+# 4. Targets
+# List the exact names of events you want to farm.
+TARGETS = [
+    "Cube God"
+   # "Grand Sphinx",
+   # "Hermit God"
+]
+
+# 5. Additional Settings | legacy from V1
 # HOW LONG TO WAIT AFTER JOINING A RUN
 # Time in seconds (1200 seconds = 20 minutes)
-RUN_TIMEOUT = 1200
+RUN_TO_QUEST = 180 # Time to run to quest after server swap
+RUN_TIMEOUT = RUN_TO_QUEST +  1200
 # time key
 # 200s for tp cooldown and running to quest
 # +
 # Fungal Cavern: 15 minutes | 900s
 # Crystalline Cavern: 12 minutes | 720s
 # Nest: 8-12 minutes
+# MBC: 15 minutes? | 900s

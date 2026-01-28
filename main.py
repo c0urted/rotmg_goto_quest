@@ -1,88 +1,78 @@
 import time
-import keyboard  # pip install keyboard
+import keyboard 
 import config
-from datetime import datetime
 from collections import deque
 from core.win_api_manager import WinApiManager
-from core.state_detector import StateDetector
 from core.scraper import RealmScraper
-# from core.logger import Logger  # Uncomment if you created the logger file
+from core.state_detector import StateDetector 
 
-def get_time():
-    """Returns current time string for logging."""
-    return datetime.now().strftime("%H:%M:%S")
-
-def log(message):
-    """Helper to print with timestamp."""
-    print(f"[{get_time()}] {message}")
-
-def smart_sleep(seconds):
-    """
-    Sleeps for 'seconds', but can be interrupted by pressing Ctrl+M.
-    Returns True if skipped, False if finished normally.
-    """
-    log(f"[Wait] Sleeping for {seconds}s... Press 'Ctrl+M' to skip.")
-    start_time = time.time()
-    
-    while time.time() - start_time < seconds:
-        if keyboard.is_pressed('ctrl+m'):
-            print("") # Newline for cleanliness
-            log("[System] Timer manually skipped!")
-            time.sleep(0.5) 
-            return True
-        time.sleep(0.1)
-    
-    return False
+def log(msg):
+    print(f"[{time.strftime('%H:%M:%S')}] {msg}")
 
 def main():
-    target_mob = input("Farm Target: ").strip()
-    
+    targets = config.TARGETS
+    if isinstance(targets, str): targets = [targets]
+
     win_man = WinApiManager(config.WINDOW_TITLE)
     scraper = RealmScraper()
     detector = StateDetector(win_man)
-    # logger = Logger() # Uncomment if using logger
-    
     history = deque(maxlen=20)
 
-    log(f"[System] Tracking [{target_mob}]...")
-    log(f"[System] Mode: Hybrid (Nexus Check + {config.RUN_TIMEOUT/60:.1f}min Timer)")
-
-    if not win_man.find_window():
-        log("[Error] Game window not found! Open RotMG first.")
-        return
+    print("\n" + "="*50)
+    log(f"ROT MG GOTO QUEST - HYBRID V1/V2")
+    log(f"Targets: {targets}")
+    log(f"Safety Check: {'ENABLED' if config.ENABLE_NEXUS_CHECK else 'DISABLED'}")
+    print("="*50 + "\n")
 
     while True:
-        events = scraper.find_events(target_mob)
-        
-        for event in events:
-            if event.uuid in history:
+        try:
+            # 1. Safety Check with clean UI
+            if config.ENABLE_NEXUS_CHECK and not detector.is_in_nexus():
+                print(f"\r[Status] 🟡 BUSY (In Dungeon) - Monitoring screen...          ", end="")
+                time.sleep(3)
                 continue
 
-            # Safety Check
-            if not detector.is_in_safe_zone():
-                log(f"[System] New event found ({event.server}), but you are in Dungeon. Waiting...")
-                time.sleep(5)
-                continue 
-
-            print("") # Spacer line
-            log(f"[>>>] NEW EVENT: {event.name} | {event.server} | {event.ip}")
-            
-            if win_man.send_chat_command(f"/ip {event.ip}"):
-                history.append(event.uuid)
+            # 2. Scanning Loop
+            for target in targets:
+                print(f"\r[Status] 🔍 Scanning for {target}... ", end="")
                 
-                # Optional: Log to file
-                # logger.log_run(event, status="Joined")
+                events = scraper.find_events(target)
+                print(f"Found {len(events)}.", end="")
+                
+                for event in events:
+                    if event.uuid in history: continue
+                    
+                    print("\n" + "-"*30)
+                    log(f"🚀 TARGET ACQUIRED: {event.name}")
+                    log(f"📍 IP: {event.ip}")
+                    
+                    if win_man.send_chat_command(f"/ip {event.ip}"):
+                        history.append(event.uuid)
+                        
+                        log(f"⌛ Sleeping {config.RUN_TIMEOUT}s (Press Ctrl+M to skip)")
+                        time.sleep(15) # Wait for loading screen
+                        
+                        start_time = time.time()
+                        while time.time() - start_time < config.RUN_TIMEOUT:
+                            if keyboard.is_pressed('ctrl+m'):
+                                log("⏭️ Manual Skip detected.")
+                                break
+                            if config.ENABLE_NEXUS_CHECK and detector.is_in_nexus():
+                                log("🏠 Back in Nexus - resetting.")
+                                break
+                            time.sleep(1)
+                        
+                        print("-"*30)
+                        break
 
-                # SMART WAIT
-                smart_sleep(config.RUN_TIMEOUT)
+            time.sleep(config.CHECK_INTERVAL)
 
-                log("[System] Timer finished. Refreshing event list...")
-                break 
-            else:
-                log("[Error] Failed to send command.")
-
-        # Small sleep between API checks
-        time.sleep(config.CHECK_INTERVAL)
+        except KeyboardInterrupt:
+            log("Shutting down...")
+            break
+        except Exception as e:
+            log(f"⚠️ Error: {e}")
+            time.sleep(5)
 
 if __name__ == "__main__":
     main()
