@@ -19,7 +19,7 @@ def main():
     history = deque(maxlen=20)
 
     print("\n" + "="*50)
-    log(f"ROT MG GOTO QUEST - HYBRID V1/V2")
+    log(f"ROTMG GOTO QUEST - HYBRID V1/V2")
     log(f"Targets: {targets}")
     log(f"Safety Check: {'ENABLED' if config.ENABLE_NEXUS_CHECK else 'DISABLED'}")
     print("="*50 + "\n")
