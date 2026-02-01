@@ -44,12 +44,13 @@ def main():
                     
                     print("\n" + "-"*30)
                     log(f"🚀 TARGET ACQUIRED: {event.name}")
+                    log(f"🌐 SERVER/REALM: {event.server} - {event.realm}")
                     log(f"📍 IP: {event.ip}")
                     
                     if win_man.send_chat_command(f"/ip {event.ip}"):
                         history.append(event.uuid)
                         
-                        log(f"⌛ Sleeping {config.RUN_TIMEOUT}s (Press Ctrl+M to skip)")
+                        log(f"⌛ Sleeping... ") #(Press Ctrl+M to skip)
                         time.sleep(15) # Wait for loading screen
                         
                         start_time = time.time()
