@@ -1,6 +1,6 @@
 # RotMG Event Hopper (V1-V2 Hybrid) 🚀
 
-A high-speed automation tool for **Realm of the Mad God Exalt**. This bot bypasses the standard web UI to scrape event data directly from RealmStock and injects `/ip` connection commands into the game client. 
+A high-speed automation tool for **Realm of the Mad God Exalt**. This bot scrapes event data directly from RealmStock and injects `/ip` connection commands into the game client. 
 
 Designed for 24/7 background operation with integrated safety checks to prevent joining runs while currently in a dungeon.
 
@@ -8,13 +8,12 @@ Designed for 24/7 background operation with integrated safety checks to prevent 
 
 ## Key Features
 
-* **Direct API Scraper:** Bypasses standard UI refreshes to pull event IPs via UUID instantly.
-* **Nexus Safety Check:** Uses pixel-detection to verify you are in the Nexus before attempting to jump (prevents deaths/disconnects).
-* **Window Focus Injection:** Uses `pywin32` for low-latency command sending with minimal window focus time.
-* **Zombie Cleanup:** Automatically nukes old Chrome/ChromeDriver processes on startup and exit.
-* **Smart State Logic:** Automatically resets the search loop the moment you return to the Nexus from a run.
-* **DPI Aware:** Handles Windows display scaling automatically for pixel-perfect accuracy.
-
+* **Low-Level Win32 Injection:** Uses `SendMessage` with **Hardware Scan Code spoofing** (0x1C) to bypass Unity's input filters. Operates via the Windows Message Queue, allowing background execution.
+* **Input State Purging:** Features an automated focus-reset sequence (using `WM_ACTIVATE` and hardware `KEYUP` pulses) to maintain client stability.
+* **Web Scraper:** Pulls event IPs via realmstock.
+* **Nexus Safety Check:** Uses pixel-detection to verify you are in the Nexus before attempting to jump servers.
+* **Server Blacklist:** Optional filtering in `config.py` to automatically skip laggy or antihack filled servers.
+* **DPI Aware:** Integrated `ctypes` support to handle Windows display scaling automatically for pixel-perfect accuracy.
 ---
 ![Proof of it working in Visual studio code](images/image.png)
 
@@ -72,13 +71,12 @@ The bot checks your saved coordinates. If a majority of the pixels match (e.g., 
 
 To send the `/ip` command to the game, the bot must have permission to interact with the RotMG window.
 
-1.  **Open VS Code as Administrator**: 
-    - Right-click the **VS Code shortcut**.
-    - Select **"Run as Administrator"**.
+1.  **Open VS Code or Command Prompt as Administrator**: 
 2.  **Navigate to the folder**
+    -  ```cd C:\Users\username\Desktop\rotmg_goto_quest```
 3.  **Run the Script**:
     ```
-    main.py
+    python main.py
     ```
 *Note: If you do not run as Admin, the bot will scan successfully but the game will ignore the typed commands.*
 
@@ -88,6 +86,7 @@ To send the `/ip` command to the game, the bot must have permission to interact 
 
 1.  Launch RotMG Exalt and ensure you are in the Nexus.
 2.  Update your `TARGETS` in `config.py` (e.g., `TARGETS = ["Cube God", "Lost Sentry"]`).
+  `server blacklist coming soon`
 3.  **Controls**:
     - **`Ctrl + M`**: Force skip the current sleep timer.
     - **`Ctrl + C`**: Kill the bot and all associated browser sessions.
