@@ -36,23 +36,42 @@ CHECK_INTERVAL = 2.0
 # 4. Targets
 # List the exact names of events you want to farm.
 TARGETS = [
-    "Grand Sphinx",
-    "Crab Sovereign",
-    "Sigma Werewolf"
+### SHATTERS
+    # "Avatar of the Forgotten King",
+    # "Flying Behemoth"
+### SPEC PEN
+    # "Skeletal Centipede"
+### NEST
+#    "Corrupted Bramblethorn",
+#    "Killer Bee Nest"
+### FUNGALS
+#    "Ancient Kaiju",
+#    "Adult Baneserpent"
+### LOST HALLS
+    # "Bloodroot Heart",
+    # "Ravenous Rot",
+    # "Lost Sentry"
+### KOGBOLD
+    "Aerial Warship",
+    "Kogbold Expedition Engine"
+
+### WORLD EVENT ITEMS
+   # "Keyper"
+   # "Jotunn"
+## JUGG HELM 
+   # "Grand Sphinx",
+   # "Crab Sovereign",
+   # "Sigma Werewolf"
+## CDIRK
+   # "Cube God",
+   # "Astral Rift"
 
    # "Grand Sphinx",
    # "Hermit God"
 ]
 
 # 5. Additional Settings | legacy from V1
-# HOW LONG TO WAIT AFTER JOINING A RUN
-# Time in seconds (1200 seconds = 20 minutes)
-RUN_TO_QUEST = 180 # Time to run to quest after server swap
-RUN_TIMEOUT = RUN_TO_QUEST +  1200
-# time key
-# 200s for tp cooldown and running to quest
-# +
-# Fungal Cavern: 15 minutes | 900s
-# Crystalline Cavern: 12 minutes | 720s
-# Nest: 8-12 minutes
-# MBC: 15 minutes? | 900s
+# 5. O3 Hunting Mode
+# Set to True to ignore TARGETS and exclusively hunt for "Realm Closed" events
+# by finding proxy events on the same server to get the IP.
+HUNT_CLOSED_REALMS = False
