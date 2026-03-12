@@ -1,4 +1,4 @@
-# RotMG Event Hopper (V1-V2 Hybrid) 🚀
+# RotMG Event Hopper
 
 A high-speed automation tool for **Realm of the Mad God Exalt**. This bot scrapes event data directly from RealmStock and injects `/ip` connection commands into the game client. 
 
@@ -12,17 +12,17 @@ Designed for 24/7 background operation with integrated safety checks to prevent 
 * **Input State Purging:** Features an automated focus-reset sequence (using `WM_ACTIVATE` and hardware `KEYUP` pulses) to maintain client stability.
 * **Web Scraper:** Pulls event IPs via realmstock.
 * **Nexus Safety Check:** Uses pixel-detection to verify you are in the Nexus before attempting to jump servers.
-* **Server Blacklist:** Optional filtering in `config.py` to automatically skip laggy or antihack filled servers.
-* **DPI Aware:** Integrated `ctypes` support to handle Windows display scaling automatically for pixel-perfect accuracy.
+* **NOT ADDED Server Blacklist:** Optional filtering in `config.py` to automatically skip laggy or antihack filled servers.
+* **DPI Aware:** Integrated `ctypes` support to handle Windows display scaling automatically.
 ---
 ![Proof of it working in Visual studio code](images/image.png)
 
-Proof of it working in Visual studio code ^^
+Proof of it working ^^
 ## Setup
 
 ### Prerequisites
 * Python 3.10+
-* Google Chrome
+* Google Chrome or similar chromium based browser
 * A [RealmStock](https://realmstock.com) account (Requires valid Email + Static OTP/Order ID).
 
 ### Installation
@@ -32,7 +32,7 @@ Proof of it working in Visual studio code ^^
     git clone [https://github.com/c0urted/rotmg_goto_quest.git](https://github.com/c0urted/rotmg_goto_quest.git)
     cd rotmg_goto_quest
     ```
-    or download as a .zip and extract.
+    or download as a .zip and extract and nav to /rotmg_goto_quest/
 
 2.  **Install Dependencies:**
     ```bash
@@ -96,9 +96,9 @@ To send the `/ip` command to the game, the bot must have permission to interact 
 
 ## Project Structure
 
-* `main.py`: Primary loop and polished terminal interface.
+* `main.py`: Primary loop and "polished" terminal interface.
 * `calibration.py`: Pixel selector for Nexus detection.
-* `core/scraper.py`: Selenium-based event scraper (V1 Logic).
+* `core/scraper.py`: Selenium-based event scraper.
 * `core/state_detector.py`: Pixel-matching safety engine.
 * `core/win_api_manager.py`: Handles background command injection.
 * `pixel_config.json`: Stores your calibrated UI data.
