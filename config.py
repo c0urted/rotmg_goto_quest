@@ -45,15 +45,15 @@ TARGETS = [
 #    "Corrupted Bramblethorn",
 #    "Killer Bee Nest"
 ### FUNGALS
-#    "Ancient Kaiju",
-#    "Adult Baneserpent"
+   "Ancient Kaiju",
+   "Adult Baneserpent"
 ### LOST HALLS
     # "Bloodroot Heart",
     # "Ravenous Rot",
     # "Lost Sentry"
 ### KOGBOLD
-    "Aerial Warship",
-    "Kogbold Expedition Engine"
+    # "Aerial Warship",
+    # "Kogbold Expedition Engine"
 
 ### WORLD EVENT ITEMS
    # "Keyper"
@@ -65,13 +65,10 @@ TARGETS = [
 ## CDIRK
    # "Cube God",
    # "Astral Rift"
-
-   # "Grand Sphinx",
-   # "Hermit God"
 ]
 
-# 5. Additional Settings | legacy from V1
-# 5. O3 Hunting Mode
+# 5. Additional Settings
+# 5. O3 Hunting Mode - UNFINISHED
 # Set to True to ignore TARGETS and exclusively hunt for "Realm Closed" events
 # by finding proxy events on the same server to get the IP.
 HUNT_CLOSED_REALMS = False
